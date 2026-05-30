@@ -1,0 +1,687 @@
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المغامرة الرقمية: المطوقة والجرذ</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Changa:wght@400;600;800&family=Cairo:wght@400;700;900&display=swap');
+
+        :root {
+            --primary: #4776e6;
+            --primary-dark: #8e54e9;
+            --success: #00b894;
+            --success-light: #e8fbf7;
+            --danger: #ff7675;
+            --danger-light: #fff0f0;
+            --text-main: #2d3436;
+            --card-shadow: cubic-bezier(0.1, 0.8, 0.25, 1);
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* حاوية اللعبة الرئيسية */
+        .game-wrapper {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 700px;
+            overflow: hidden;
+            border: 4px solid #ffffff;
+            transition: all 0.3s var(--card-shadow);
+        }
+
+        /* الهيدر العلوي للعبة */
+        .game-banner {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            padding: 25px;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+
+        .game-banner h1 {
+            font-family: 'Changa', sans-serif;
+            margin: 0 0 8px 0;
+            font-size: 28px;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .game-banner p {
+            margin: 0;
+            font-size: 15px;
+            opacity: 0.9;
+        }
+
+        /* لوحة التحكم بالتقدم */
+        .control-panel {
+            padding: 20px 25px 5px 25px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .bar-container {
+            background: #dfe6e9;
+            height: 14px;
+            border-radius: 50px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ced1, var(--primary));
+            width: 0%;
+            border-radius: 50px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* خريطة تتبع المشاهد المستوحاة من ألعاب الفيديو */
+        .map-tracks {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            padding: 0 10px;
+            position: relative;
+        }
+
+        .map-tracks::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #dfe6e9;
+            z-index: 1;
+            transform: translateY(-50%);
+        }
+
+        .track-node {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 3px solid #b2bec3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+            z-index: 2;
+            color: #b2bec3;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .track-node.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: #fff;
+            transform: scale(1.2);
+            box-shadow: 0 0 15px rgba(71, 118, 230, 0.4);
+        }
+
+        .track-node.correct {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .track-node.wrong {
+            background: var(--danger);
+            border-color: var(--danger);
+            color: white;
+        }
+
+        /* صندوق المشهد المصور */
+        .scene-card {
+            padding: 0 25px 25px 25px;
+        }
+
+        .image-viewport {
+            width: 100%;
+            height: 220px;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .image-viewport img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .image-viewport:hover img {
+            transform: scale(1.03);
+        }
+
+        .scene-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 6px 15px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 700;
+            backdrop-filter: blur(5px);
+        }
+
+        .question-holder {
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.7;
+            color: var(--text-main);
+            margin-bottom: 20px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            border-right: 5px solid var(--primary);
+        }
+
+        /* تصميم أزرار الخيارات التفاعلية */
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .interactive-opt {
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: inherit;
+            text-align: right;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #4a5568;
+        }
+
+        .interactive-opt:hover:not(:disabled) {
+            border-color: var(--primary);
+            background: #f4f7ff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .interactive-opt .status-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid #cbd5e1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            color: transparent;
+        }
+
+        .interactive-opt.correct {
+            background: var(--success-light);
+            border-color: var(--success);
+            color: #0f5132;
+        }
+
+        .interactive-opt.correct .status-icon {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .interactive-opt.wrong {
+            background: var(--danger-light);
+            border-color: var(--danger);
+            color: #842029;
+        }
+
+        .interactive-opt.wrong .status-icon {
+            background: var(--danger);
+            border-color: var(--danger);
+            color: white;
+        }
+
+        .interactive-opt:disabled {
+            cursor: not-allowed;
+        }
+
+        /* صندوق التغذية الراجعة الذكي */
+        .alert-box {
+            margin-top: 20px;
+            padding: 15px 20px;
+            border-radius: 14px;
+            display: none;
+            font-weight: 600;
+            font-size: 15px;
+            line-height: 1.6;
+            animation: slideIn 0.3s ease;
+        }
+
+        .alert-box i {
+            margin-left: 8px;
+            font-size: 18px;
+        }
+
+        .alert-box.correct {
+            display: block;
+            background: var(--success-light);
+            color: #0f5132;
+            border: 1px solid rgba(0, 184, 148, 0.3);
+        }
+
+        .alert-box.wrong {
+            display: block;
+            background: var(--danger-light);
+            color: #842029;
+            border: 1px solid rgba(255, 118, 117, 0.3);
+        }
+
+        /* أزرار التحكّم والانتقال */
+        .action-btn {
+            margin-top: 20px;
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 16px;
+            cursor: pointer;
+            display: none;
+            box-shadow: 0 6px 20px rgba(142, 84, 233, 0.3);
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(142, 84, 233, 0.4);
+        }
+
+        /* شاشة عرض التقارير النهائية */
+        .end-screen {
+            text-align: center;
+            display: none;
+            padding: 35px 25px;
+        }
+
+        .celebrate-img {
+            width: 100%;
+            max-width: 260px;
+            height: auto;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .score-badge {
+            font-size: 60px;
+            font-weight: 900;
+            font-family: 'Changa', sans-serif;
+            color: var(--primary-dark);
+            margin: 10px 0;
+        }
+
+        .rank-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+
+        .retry-btn {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+            border: none;
+            padding: 15px 45px;
+            font-size: 17px;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 25px;
+            font-family: inherit;
+            box-shadow: 0 5px 15px rgba(0, 184, 148, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .retry-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 184, 148, 0.4);
+        }
+
+        /* الحركات والمؤثرات الانتقالية */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="sound-correct" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-84.wav" preload="auto"></audio>
+    <audio id="sound-wrong" src="https://assets.mixkit.co/active_storage/sfx/2959/2959-84.wav" preload="auto"></audio>
+
+    <div class="game-wrapper">
+        <div class="game-banner">
+            <h1>المطوقة والجرذ: التحدي القيادي الرقمي</h1>
+            <p>حلل المشاهد، اتخذ قراراتك بحكمة، وأنقذ سرب الحمام!</p>
+        </div>
+
+        <div class="control-panel">
+            <div class="progress-info">
+                <span id="label-step">المشهد 1 من 6</span>
+                <span id="label-score"><i class="fa-solid fa-star" style="color: #ffca28;"></i> الإيجابية: 0</span>
+            </div>
+            <div class="bar-container">
+                <div class="bar-fill" id="bar-fill"></div>
+            </div>
+            <div class="map-tracks" id="map-tracks"></div>
+        </div>
+
+        <div id="play-zone" class="scene-card">
+            <div class="image-viewport">
+                <span class="scene-badge" id="scene-badge">المشهد الأول</span>
+                <img id="scene-img" src="" alt="المشهد المصور للقصة">
+            </div>
+
+            <div class="question-holder" id="question-text">جاري تحضير بيئة اللعب...</div>
+            
+            <div class="options-grid" id="options-list"></div>
+
+            <div class="alert-box" id="alert-box"></div>
+            <button class="action-btn" id="action-btn" onclick="triggerNext()">المشهد التالي <i class="fa-solid fa-arrow-left"></i></button>
+        </div>
+
+        <div class="end-screen" id="end-screen">
+            <img id="end-image" class="celebrate-img" src="" alt="شاشة النهاية والمكافأة">
+            <h2>🏆 تهانينا! أكملت الرحلة التعليمية</h2>
+            <p>لقد اجتزت كافة تحليلات قصة المطوقة والجرذ، وإليك تقرير تقييم أدائك الاستراتيجي:</p>
+            <div class="score-badge" id="end-score">0 / 6</div>
+            <div class="rank-title" id="end-rank"></div>
+            <p id="end-msg" style="max-width: 520px; margin: 0 auto; color: #636e72; line-height: 1.6;"></p>
+            <button class="retry-btn" onclick="resetAdventure()"><i class="fa-solid fa-rotate-right"></i> خوض التحدي مجدداً</button>
+        </div>
+    </div>
+
+    <script>
+        // قاعدة البيانات المتكاملة مدعومة بالروابط المباشرة لرسوم وتصاميم المشاهد
+        const storyData = [
+            {
+                id: 1,
+                badge: "🔎 المشهد 1: فخ الصياد",
+                img: "https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&q=80&w=700", // صورة فخ/شبكة طيور وحمام في الطبيعة
+                question: "وقع سرب الحمام في شبكة الصياد بسبب التسرع والبحث عن الحب. ما هي المشكلة الأساسية التي واجهت السرب فوراً وأربكتهم؟",
+                options: [
+                    { text: "أنانية كل حمامة ومحاولتها الخلاص لنفسها والتخبط الفردي.", isCorrect: true },
+                    { text: "عدم جودة الشباك التي صنعها الصياد لالتقاط الطيور.", isCorrect: false },
+                    { text: "قلة كمية الحب الموزعة على الأرض من قبل الفخ.", isCorrect: false }
+                ],
+                correctFeedback: "أحسنت صنعاً! التخبط الفردي والأنانية كادت أن تقضي عليهم فوراً، فالتفكير الأناني في الأزمات يقود للهلاك السريع.",
+                wrongFeedback: "إجابة غير دقيقة! المشكلة الحقيقية لم تكن في متانة الشباك، بل في سلوك السرب حين التمست كل حمامة الخلاص لنفسها وتجاهلت مصير الجماعة."
+            },
+            {
+                id: 2,
+                badge: "👑 المشهد 2: الاتحاد قوة",
+                img: "https://images.unsplash.com/photo-1452570053594-1b985d6ea890?auto=format&fit=crop&q=80&w=700", // صورة أسراب طيور تطير مجتمعة
+                question: "تدخلت الحمامة المطوقة لإنقاذ الموقف ونهت عن التخاذل والأنانية. ما هو القرار الاستراتيجي البديل الذي اتخذته؟",
+                options: [
+                    { text: "الاستسلام التام وانتظار قدوم الصياد لعلّه يطلق سراحهم رأفة بهم.", isCorrect: false },
+                    { text: "التعاون الفوري والطيران الجماعي كطائر واحد لقلع الشبكة ورفعها عاليًا.", isCorrect: true },
+                    { text: "الانتظار السلبي حتى تقضم كل حمامة الحبل المحيط بها بمفردها.", isCorrect: false }
+                ],
+                correctFeedback: "رائع جداً! بالاتحاد والعمل المنظم ككتلة واحدة وطائر واحد، قلعوا الشبكة وحلقوا بها بعيداً عن متناول الصياد.",
+                wrongFeedback: "خطأ في التقدير! الاستسلام أو العمل الفردي المشتت كان سيعطي الصياد فرصة للإمساك بالجميع بسهولة. الحل كان بالطاقة الجماعية الموحدة."
+            },
+            {
+                id: 3,
+                badge: "🗺️ المشهد 3: التخطيط والوجهة",
+                img: "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=700", // صورة تظهر غابات متبوعة بمدينة آمنة في الأفق
+                question: "طار الحمام بالشبكة والصياد يلاحقهن. اقترحت حمامة الهروب نحو الأودية والأشجار الكثيفة، لكن المطوقة رفضت وتوجهت للمدينة حيث جحر الجرذ. لماذا؟",
+                options: [
+                    { text: "لأن الطيران فوق أسطح المدينة أسهل وأقل جهداً لطيران الحمام المتعب.", isCorrect: false },
+                    { text: "لأن الأودية والأشجار ستجعل الشبكة تعلَق بالأغصان وتسهّل صيدهم، بينما المدينة بها الصديق الوفي (الجرذ) القادر على قرض الشبكة.", isCorrect: true },
+                    { text: "لأنها أرادت البحث عن مخازن طعام وماء إضافية للسرب داخل أسواق المدينة.", isCorrect: false }
+                ],
+                correctFeedback: "رؤية ثاقبة ممتازة! الأشجار الكثيفة كانت ستعلق الشبكة وتثبتها، بينما التوجه نحو صديق وفي يملك أدوات المساعدة (الجرذ) هو قمة الحكمة التكتيكية.",
+                wrongFeedback: "للأسف إجابة خاطئة! الاختباء بين الأغصان والأودية كان بمثابة فخ آخر سيعيق حركتهم. التوجه للجرذ في المدينة كان المخرج الحقيقي المخطط له."
+            },
+            {
+                id: 4,
+                badge: "🤝 المشهد 4: إيثار القائد",
+                img: "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&q=80&w=700", // جحر فأر/جرذ في الطبيعة
+                question: "عند الوصول، بدأ الجرذ فوراً بقرض حبال الحمامة المطوقة نظراً لروابط الصداقة الخاصة بينهما. كيف تصرفت المطوقة قيادياً هنا؟",
+                options: [
+                    { text: "وافقت فوراً لتضمن حريتها أولاً ثم تساعد الآخرين من الخارج لاحقاً.", isCorrect: false },
+                    { text: "أمرته وشددت عليه بالبدء بقرض حبال سائر الحمام أولاً، ثم العودة لحبالها هي في النهاية.", isCorrect: true },
+                    { text: "طلبت منه التوقف المؤقت وتركهم داخل الشبكة حتى يستريح الجرذ من التعب.", isCorrect: false }
+                ],
+                correctFeedback: "أنت رائع! هذا يجسد المعنى الأسمى للقيادة الحقيقية والمسؤولية: تقديم أمن وسلامة الأتباع والرعية على المصلحة الشخصية للقائد.",
+                wrongFeedback: "إجابة خاطئة! القائد الحقيقي لا يهرب أولاً ويترك جنوده خلفه. المطوقة ضربت أروع أمثلة الإيثار برفضها الخروج قبل الجميع."
+            },
+            {
+                id: 5,
+                badge: "🧠 المشهد 5: التحليل النفسي",
+                img: "https://images.unsplash.com/photo-1606208427954-ff853749792e?auto=format&fit=crop&q=80&w=700", // فأر/جرذ ذكي صغير يعبر عن الصديق المساعد
+                question: "أصرت المطوقة على الجرذ أن يقطع حبال الحمام أولاً وأعادت عليه القول مراراً ليتأكد. ما هو التبرير النفسي الذكي الذي ساقته للجرذ？",
+                options: [
+                    { text: "علمت أن الجرذ إذا بدأ بها أولاً وتعب أو كسل، قد يتراخى عن تخليص البقية؛ لكن لو بدأ بهم فلن يرضى أبداً أن تظل صديقته المطوقة حبيسة.", isCorrect: true },
+                    { text: "لأن حبال الحمامات الأخرى كانت مهترئة وأسهل بكثير في القرض من حبالها المتينة.", isCorrect: false },
+                    { text: "لأنها كانت غاضبة من تسرع بقية الحمام وأرادت عقابهم بالانتظار لفترة أطول.", isCorrect: false }
+                ],
+                correctFeedback: "عبقرية في الاختيار! المطوقة حللت نفسية صديقها الجرذ بدقة؛ علمت أن وفاءه لها سيضمن استمراره في العمل لإنقاذها حتى لو نال منه التعب والإرهاق.",
+                wrongFeedback: "خطأ! المطوقة لم تكن مدفوعة بغضب أو سهولة الحبال، بل اعتمدت على قراءة نفسية ذكية لضمان إنقاذ كل فرد في سربها بذكاء."
+            },
+            {
+                id: 6,
+                badge: "🏆 المشهد 6: منظومة القيم",
+                img: "https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&q=80&w=700", // تم استبدال صورة الخنزير البري القديمة بصورة واضحة للصياد وهو يرمي الشباك في الغابة
+                question: "نجا سرب الحمام بالكامل بفضل هذه المغامرة والتعاون الفذ. ما هي العبر والدروس المستفادة الأساسية التي لخصها لنا هذا الدرس الممتع؟",
+                options: [
+                    { text: "أهمية توخي الحذر الشديد عند البحث عن الحبوب وتجنب الصيادين في المواسم فقط.", isCorrect: false },
+                    { text: "أهمية الصداقة الحقيقية والوفاء بالعهود، ركائز القيادة الحكيمة والإيثار، وقوة الاتحاد والعمل الجماعي المنظم لتخطي الأزمات.", isCorrect: true },
+                    { text: "أن الكائنات الصغيرة كالجرذان مفيدة جداً ويجب الاعتناء ببيئتها داخل المنازل دائماً.", isCorrect: false }
+                ],
+                correctFeedback: "إجابة مثالية واكتملت اللعبة! القصة هي لوحة متكاملة تلخص قيم الوفاء، التضحية المتبادلة، القيادة المخلصة، والعمل الجماعي المنظم.",
+                wrongFeedback: "إجابة غير مكتملة! المغزى التعليمي يتعدى مجرد الحذر المادي، إنه يرسخ أسس أخلاقية سامية كالوفاء للأصدقاء والإيثار والاتحاد لمواجهة الشدائد."
+            }
+        ];
+
+        let index = 0;
+        let score = 0;
+        let answered = false;
+
+        function playAudio(status) {
+            const ok = document.getElementById('sound-correct');
+            const no = document.getElementById('sound-wrong');
+            ok.pause(); ok.currentTime = 0;
+            no.pause(); no.currentTime = 0;
+            if (status === 'correct') ok.play().catch(e => {});
+            if (status === 'wrong') no.play().catch(e => {});
+        }
+
+        function createTracks() {
+            const tracks = document.getElementById('map-tracks');
+            tracks.innerHTML = '';
+            storyData.forEach((item, i) => {
+                const node = document.createElement('div');
+                node.className = 'track-node';
+                node.id = `node-${i}`;
+                node.innerText = i + 1;
+                tracks.appendChild(node);
+            });
+        }
+
+        function renderScene() {
+            answered = false;
+            const scene = storyData[index];
+            
+            document.getElementById('label-step').innerText = `المشهد ${index + 1} من ${storyData.length}`;
+            document.getElementById('scene-badge').innerText = scene.badge;
+            document.getElementById('scene-img').src = scene.img;
+            document.getElementById('question-text').innerText = scene.question;
+            
+            const pct = (index / storyData.length) * 100;
+            document.getElementById('bar-fill').style.width = `${pct}%`;
+
+            storyData.forEach((_, i) => {
+                const n = document.getElementById(`node-${i}`);
+                if(i === index && !n.classList.contains('correct') && !n.classList.contains('wrong')) {
+                    n.className = 'track-node active';
+                }
+            });
+
+            const list = document.getElementById('options-list');
+            list.innerHTML = '';
+            scene.options.forEach((opt) => {
+                const btn = document.createElement('button');
+                btn.className = 'interactive-opt';
+                btn.innerHTML = `<span>${opt.text}</span> <div class="status-icon"><i class="fa-solid"></i></div>`;
+                btn.onclick = () => verifyChoice(btn, opt.isCorrect);
+                list.appendChild(btn);
+            });
+
+            document.getElementById('alert-box').style.display = 'none';
+            document.getElementById('action-btn').style.display = 'none';
+        }
+
+        function verifyChoice(button, isCorrect) {
+            if (answered) return;
+            answered = true;
+
+            const scene = storyData[index];
+            const alert = document.getElementById('alert-box');
+            const node = document.getElementById(`node-${index}`);
+            const buttons = document.querySelectorAll('.interactive-opt');
+            
+            buttons.forEach(b => b.disabled = true);
+
+            if (isCorrect) {
+                button.classList.add('correct');
+                button.querySelector('.status-icon i').className = "fa-solid fa-check";
+                alert.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${scene.correctFeedback}`;
+                alert.className = 'alert-box correct';
+                node.className = 'track-node correct';
+                node.innerHTML = '<i class="fa-solid fa-check"></i>';
+                score++;
+                document.getElementById('label-score').innerHTML = `<i class="fa-solid fa-star" style="color: #ffca28;"></i> الإيجابية: ${score}`;
+                playAudio('correct');
+            } else {
+                button.classList.add('wrong');
+                button.querySelector('.status-icon i').className = "fa-solid fa-xmark";
+                alert.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${scene.wrongFeedback}`;
+                alert.className = 'alert-box wrong';
+                node.className = 'track-node wrong';
+                node.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                playAudio('wrong');
+
+                buttons.forEach((b, idx) => {
+                    if (scene.options[idx].isCorrect) {
+                        b.classList.add('correct');
+                        b.querySelector('.status-icon i').className = "fa-solid fa-check";
+                    }
+                });
+            }
+
+            document.getElementById('action-btn').style.display = 'block';
+            document.getElementById('action-btn').innerHTML = index === storyData.length - 1 ? 'تحليل النتائج وعرض رتبتك القيادية 📊' : 'الانتقال للمشهد التالي ⬅️';
+        }
+
+        function triggerNext() {
+            if (index < storyData.length - 1) {
+                index++;
+                renderScene();
+            } else {
+                showSummary();
+            }
+        }
+
+        function showSummary() {
+            document.getElementById('bar-fill').style.width = `100%`;
+            document.getElementById('label-step').innerText = `اكتملت التجربة بنجاح!`;
+            document.getElementById('play-zone').style.display = 'none';
+            
+            const screen = document.getElementById('end-screen');
+            screen.style.display = 'block';
+
+            const scoreBadge = document.getElementById('end-score');
+            const rankTitle = document.getElementById('end-rank');
+            const msg = document.getElementById('end-msg');
+            const endImg = document.getElementById('end-image');
+
+            scoreBadge.innerText = `${score} / ${storyData.length}`;
+
+            if (score === storyData.length) {
+                endImg.src = "https://images.unsplash.com/photo-1578269174936-2709b5a5e06e?auto=format&fit=crop&q=80&w=500"; // صورة تعبر عن التتويج والنجاح القيادي الممتاز
+                rankTitle.innerHTML = '👑 وسام: القائد الاستراتيجي المُلهم (ممتاز)';
+                rankTitle.style.color = 'var(--success)';
+                msg.innerText = 'عبقري! لقد استوعبت كل قيم القصة ومهارات القيادة الحكيمة، الإيثار، ووفاء الأصدقاء وقت الأزمات والشدائد.';
+            } else if (score >= 4) {
+                endImg.src = "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&q=80&w=500"; // صورة تعاون ومصافحة وعمل جماعي
+                rankTitle.innerHTML = '🕊️ وسام: القائد المتعاون والمفكر (جيد جداً)';
+                rankTitle.style.color = 'var(--primary)';
+                msg.innerText = 'أداء رائع جداً! تفكيرك متزن ولديك مهارات ممتازة في تقدير أهمية الاتحاد والشورى والعمل الجماعي الموحد لإنقاذ الجماعة.';
+            } else {
+                endImg.src = "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=500"; // صورة كتاب مفتوح للدراسة والمراجعة
+                rankTitle.innerHTML = '📖 رتبة: بحاجة لمراجعة حكمة القصة (مقبول)';
+                rankTitle.style.color = 'var(--danger)';
+                msg.innerText = 'تذكر دائماً أن التسرع والأنانية يعيقان النجاة، وأن القيادة الحقيقية تتطلب الهدوء والإيثار. أعد التحدي لتثبيت المفاهيم الحكيمة!';
+            }
+        }
+
+        function resetAdventure() {
+            index = 0;
+            score = 0;
+            document.getElementById('play-zone').style.display = 'block';
+            document.getElementById('end-screen').style.display = 'none';
+            document.getElementById('label-score').innerHTML = `<i class="fa-solid fa-star" style="color: #ffca28;"></i> الإيجابية: 0`;
+            createTracks();
+            renderScene();
+        }
+
+        window.onload = function() {
+            createTracks();
+            renderScene();
+        };
+    </script>
+</body>
+</html>
+
+```
